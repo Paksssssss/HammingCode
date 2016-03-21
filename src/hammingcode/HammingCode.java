@@ -25,7 +25,7 @@ public class HammingCode {
         ArrayList<String> inputs = hc.readFile("/home/paks/NetBeansProjects/HammingCode/src/hammingcode/input.txt");
         hc.solve(inputs);
     }
-    
+
     //Reads input file
     ArrayList<String> readFile(String filename) throws FileNotFoundException {
         Scanner input = new Scanner(new File(filename));
@@ -35,62 +35,87 @@ public class HammingCode {
         }
         return inputList;
     }
-    
-    void solve(ArrayList<String> input){
+
+    void solve(ArrayList<String> input) {
         ArrayList<String> parityList = new ArrayList();
         String[] inputSplit;
         String parityKind, binInput;
-        for(String str  : input){
+        for (String str : input) {
             inputSplit = str.split(" ");
             parityKind = inputSplit[0];
             binInput = inputSplit[1];
-            System.out.println(binInput);
-            for(int i = 0, j =1 ; i<binInput.length(); i++, j++){
-                if((j & (j - 1)) == 0){
-                    parityList.add(takeNthPower(binInput,j));
+            int changeThisPos = 0;
+            String codeWord = addCheckBits(binInput);
+            for (int i = 0, j = 1; i < codeWord.length(); i++, j++) {
+                if ((j & (j - 1)) == 0) {
+                    if (checkParity(takeNthPower(codeWord, j), parityKind)) {
+                        changeThisPos += j;
+                    }
                 }
             }
-            System.out.println(checkParity(parityList, parityKind));
+            if(codeWord.charAt(changeThisPos-1)=='1')
+                codeWord = changeCharInPosition(changeThisPos-1, '0', codeWord);
+            else
+                codeWord = changeCharInPosition(changeThisPos-1, '1', codeWord);
         }
-        System.out.println(parityList);
     }
-    
-    String addCheckBits(String str){
+
+    String addCheckBits(String str) {
+        String codeWord = "";
         double noOfCheckBits = Math.log(str.length());
         noOfCheckBits /= Math.log(2);
         noOfCheckBits++;
+        for (int i = 0, j = 1; j <= str.length() + noOfCheckBits; j++) {
+            if ((j & (j - 1)) == 0) {
+                if (StringUtils.countMatches(takeNthPower(str, j), "1") % 2 == 0) {
+                    codeWord += "0";
+                } else {
+                    codeWord += "1";
+                }
+            } else {
+                codeWord += str.charAt(i);
+                i++;
+            }
+        }
+        return codeWord;
     }
-    
-    String takeNthPower(String str, int power){
+
+    public String changeCharInPosition(int position, char ch, String str) {
+        char[] charArray = str.toCharArray();
+        charArray[position] = ch;
+        return new String(charArray);
+    }
+
+    String takeNthPower(String str, int power) {
         String parityStr = "";
-        for(int i  = power-1 ; i<str.length(); ){
-            int pos = power +i;
-            while(i<pos ){
-                if(i<str.length()){
+        for (int i = power - 1; i < str.length();) {
+            int pos = power + i;
+            while (i < pos) {
+                if (i < str.length()) {
                     parityStr += Character.toString(str.charAt(i));
                 }
                 i++;
             }
-            i+=power;
+            i += power;
         }
         return parityStr;
     }
-    ArrayList<Boolean> checkParity(ArrayList<String> parityList, String parityKind){
-        ArrayList<Boolean> parityCheck = new ArrayList();
-        for(String str : parityList){
-            int ones = StringUtils.countMatches(str, "1");
-            if(StringUtils.equalsIgnoreCase(parityKind, "even")){
-                if(ones%2 == 0)
-                    parityCheck.add(true);
-                else
-                    parityCheck.add(false);
-            }else if(StringUtils.equalsIgnoreCase(parityKind, "odd")){
-                if(ones%2 == 1)
-                    parityCheck.add(true);
-                else
-                    parityCheck.add(false);
+
+    Boolean checkParity(String parityString, String parityKind) {
+        int ones = StringUtils.countMatches(str, "1");
+        if (StringUtils.equalsIgnoreCase(parityKind, "even")) {
+            if (ones % 2 == 0) {
+                return true;
+            } else {
+                return false;
+            }
+        } else if (StringUtils.equalsIgnoreCase(parityKind, "odd")) {
+            if (ones % 2 == 1) {
+                return true;
+            } else {
+                return false;
             }
         }
-        return parityCheck;
     }
+}
 }
