@@ -37,40 +37,71 @@ public class HammingCode {
     }
 
     void solve(ArrayList<String> input) {
+        System.out.println("Hammine Code:");
         ArrayList<String> parityList = new ArrayList();
         String[] inputSplit;
         String parityKind, binInput;
         for (String str : input) {
+            boolean hasError = false;
             inputSplit = str.split(" ");
             parityKind = inputSplit[0];
             binInput = inputSplit[1];
+            System.out.println("Parity: " + parityKind);
+            System.out.println("Input: " + binInput);
             int changeThisPos = 0;
-            String codeWord = addCheckBits(binInput);
+            String codeWord = addCheckBits(binInput, parityKind);
+            System.out.println("CodeWord: " + codeWord);
             for (int i = 0, j = 1; i < codeWord.length(); i++, j++) {
+                changeThisPos = 0;
                 if ((j & (j - 1)) == 0) {
-                    if (checkParity(takeNthPower(codeWord, j), parityKind)) {
+                    if (!checkParity(takeNthPower(codeWord, j), parityKind)) {
                         changeThisPos += j;
+                        if (codeWord.charAt(changeThisPos - 1) == '1') {
+                            codeWord = changeCharInPosition(changeThisPos - 1, '0', codeWord);
+                        } else {
+                            codeWord = changeCharInPosition(changeThisPos - 1, '1', codeWord);
+                        }
+                        hasError = true;
                     }
                 }
             }
-            if(codeWord.charAt(changeThisPos-1)=='1')
-                codeWord = changeCharInPosition(changeThisPos-1, '0', codeWord);
-            else
-                codeWord = changeCharInPosition(changeThisPos-1, '1', codeWord);
+            if (hasError) {
+                System.out.println("New CodeWord: " + codeWord);
+            } else {
+                System.out.println("NO Error");
+            }
         }
     }
 
-    String addCheckBits(String str) {
+    String addCheckBits(String str, String parity) {
         String codeWord = "";
         double noOfCheckBits = Math.log(str.length());
         noOfCheckBits /= Math.log(2);
         noOfCheckBits++;
+        for(int i = 0 ,j = 1; j<=str.length()+noOfCheckBits;j++){
+              if ((j & (j - 1)) == 0){
+                  codeWord+="0";
+              }else{
+                codeWord += str.charAt(i);
+                i++;
+              }
+        }
+        str = codeWord;
+        codeWord = "";
         for (int i = 0, j = 1; j <= str.length() + noOfCheckBits; j++) {
             if ((j & (j - 1)) == 0) {
-                if (StringUtils.countMatches(takeNthPower(str, j), "1") % 2 == 0) {
-                    codeWord += "0";
-                } else {
-                    codeWord += "1";
+                if (StringUtils.equalsIgnoreCase(parity, "even")) {
+                    if (StringUtils.countMatches(takeNthPower(str, j), "1") % 2 == 0) {
+                        codeWord += "0";
+                    } else {
+                        codeWord += "1";
+                    }
+                } else if (StringUtils.equalsIgnoreCase(parity, "odd")) {
+                    if (StringUtils.countMatches(takeNthPower(str, j), "1") % 2 == 0) {
+                        codeWord += "1";
+                    } else {
+                        codeWord += "0";
+                    }
                 }
             } else {
                 codeWord += str.charAt(i);
@@ -102,20 +133,18 @@ public class HammingCode {
     }
 
     Boolean checkParity(String parityString, String parityKind) {
-        int ones = StringUtils.countMatches(str, "1");
+        int ones = StringUtils.countMatches(parityString, "1");
         if (StringUtils.equalsIgnoreCase(parityKind, "even")) {
             if (ones % 2 == 0) {
                 return true;
-            } else {
-                return false;
             }
+            return false;
         } else if (StringUtils.equalsIgnoreCase(parityKind, "odd")) {
             if (ones % 2 == 1) {
                 return true;
-            } else {
-                return false;
             }
+            return false;
         }
+        return null;
     }
-}
 }
